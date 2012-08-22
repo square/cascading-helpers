@@ -12,6 +12,7 @@ import cascading.pipe.assembly.Coerce;
 import cascading.pipe.assembly.Discard;
 import cascading.pipe.assembly.Rename;
 import cascading.pipe.assembly.Retain;
+import cascading.pipe.assembly.Unique;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
@@ -74,6 +75,10 @@ public class Pump {
 
   public Pump each(Filter filter, String... args) {
     return new Pump(new Each(prev, getArgSelector(args), filter));
+  }
+
+  public Pump unique(String... uniqueFields) {
+    return new Pump(new Unique(prev, getArgSelector(uniqueFields)));
   }
 
   public Pump groupby(String... fields) {

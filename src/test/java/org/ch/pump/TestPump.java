@@ -200,6 +200,11 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("1970-01-01\t1\tfirst", "1970-01-02\t2\tsecond"), getOutputStrings());
   }
 
+  public void testUnique() throws Exception {
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
+    assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
+  }
+
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
     List<String> results = new ArrayList<String>();
