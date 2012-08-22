@@ -2,10 +2,12 @@ package org.ch.pump;
 
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import cascading.operation.Debug;
 import cascading.operation.aggregator.Count;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.Pipe;
+import cascading.pipe.assembly.Coerce;
 import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
@@ -33,8 +35,8 @@ public class TestPump extends TestCase {
 
   private static final List<Tuple> INPUT_TUPLES = new ArrayList<Tuple>(){{
     add(new Tuple("0"));
-    add(new Tuple("86400000"));
-    add(new Tuple("86400000"));
+    add(new Tuple("115200000"));
+    add(new Tuple("115200000"));
     add(new Tuple("asdf"));
   }};
 
@@ -58,19 +60,78 @@ public class TestPump extends TestCase {
     return new Hfs(new TextLine(), OUTPUT_PATH);
   }
 
-  public void testSimple() throws IOException {
+  public void testRetain() throws IOException {
     Pipe p = Pump.prime()
-        .each(new RegexFilter("\\d+"))
-        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
-        .groupby("date")
-        .every(new Count(new Fields("count")))
+        .retain("line")
         .toPipe();
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
-    Set<String> tuples = new HashSet<String>(getOutputStrings());
-    assertEquals(new HashSet(Arrays.asList("1970-01-01\t1", "1970-01-02\t2")), getOutputStrings());
+    assertEquals(Arrays.asList("0", "115200000", "115200000", "asdf"), getOutputStrings());
   }
+
+  public void testDiscard() throws IOException {
+    Pipe p = Pump.prime()
+        .discard("offset")
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("0", "115200000", "115200000", "asdf"), getOutputStrings());
+  }
+
+  // this is a pretty weak test, since the results are going to get stringified anyays
+  public void testCoerce() throws Exception {
+    Pipe p = Pump.prime()
+        .discard("offset")
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .coerce("line", long.class)
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("0", "115200000", "115200000"), getOutputStrings());
+  }
+
+  public void testEachFilter() throws IOException {
+    Pipe p = Pump.prime()
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("0", "115200000", "115200000"), getOutputStrings());
+  }
+
+  public void testEachFunction() throws IOException {
+    Pipe p = Pump.prime()
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("1970-01-01", "1970-01-02", "1970-01-02"), getOutputStrings());
+  }
+  //
+  //public void testSimple() throws IOException {
+  //  fail();
+  //  Pipe p = Pump.prime()
+  //      .each(new RegexFilter("\\d+"))
+  //      .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+  //      .groupby("date")
+  //      .every(new Count(new Fields("count")))
+  //      .toPipe();
+  //
+  //  new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+  //
+  //  Set<String> tuples = new HashSet<String>(getOutputStrings());
+  //  assertEquals(new HashSet(Arrays.asList("1970-01-01\t1", "1970-01-02\t2")), getOutputStrings());
+  //}
 
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
