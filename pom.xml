@@ -22,7 +22,7 @@
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
-    <groupId>com.squareup</groupId>
+    <groupId>org.ch</groupId>
     <artifactId>cascading-helpers</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
