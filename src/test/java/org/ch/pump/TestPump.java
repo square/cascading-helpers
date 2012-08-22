@@ -2,13 +2,11 @@ package org.ch.pump;
 
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.flow.hadoop.HadoopFlowProcess;
-import cascading.operation.Debug;
 import cascading.operation.aggregator.Count;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.Pipe;
-import cascading.pipe.assembly.Coerce;
 import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
@@ -21,10 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -181,10 +177,7 @@ public class TestPump extends TestCase {
         .groupby("date")
         .every(new Count(new Fields("count")));
     Pump right = Pump.prime("right")
-        .each(new Debug())
-        .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line")
-        .each(new Debug());
-
+        .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line");
 
     Pipe pipe = Pump.cogroup(left, right, "date")
         .retain("date", "count", "tag")
