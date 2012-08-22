@@ -5,6 +5,7 @@ import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Debug;
 import cascading.operation.aggregator.Count;
 import cascading.operation.regex.RegexFilter;
+import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.Pipe;
 import cascading.pipe.assembly.Coerce;
@@ -19,8 +20,10 @@ import cascading.tuple.TupleEntryIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
@@ -31,17 +34,25 @@ import org.apache.hadoop.fs.Path;
 public class TestPump extends TestCase {
 
   private static final String INPUT_PATH = "/tmp/TestPump/input";
+  private static final String INPUT2_PATH = "/tmp/TestPump/input2";
   private static final String OUTPUT_PATH = "/tmp/TestPump/output";
 
   private static final List<Tuple> INPUT_TUPLES = new ArrayList<Tuple>(){{
-    add(new Tuple("0"));
     add(new Tuple("115200000"));
+    add(new Tuple("0"));
     add(new Tuple("115200000"));
     add(new Tuple("asdf"));
   }};
 
+  private static final List<Tuple> INPUT2_TUPLES = new ArrayList<Tuple>(){{
+    add(new Tuple("1970-01-01\tfirst"));
+    add(new Tuple("1970-01-02\tsecond"));
+    add(new Tuple("1970-01-03\tfiltered"));
+  }};
+
   public void setUp() throws Exception {
     FileSystem.get(new Configuration()).delete(new Path(INPUT_PATH), true);
+    FileSystem.get(new Configuration()).delete(new Path(INPUT2_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH), true);
 
     Tap inTap = getInTap();
@@ -50,10 +61,21 @@ public class TestPump extends TestCase {
       tec.add(new TupleEntry(t));
     }
     tec.close();
+
+    inTap = getIn2Tap();
+    tec = inTap.openForWrite(new HadoopFlowProcess());
+    for (Tuple t : INPUT2_TUPLES) {
+      tec.add(new TupleEntry(t));
+    }
+    tec.close();
   }
 
   public Tap getInTap() {
     return new Hfs(new TextLine(), INPUT_PATH);
+  }
+
+  public Tap getIn2Tap() {
+    return new Hfs(new TextLine(), INPUT2_PATH);
   }
 
   public Tap getOutTap() {
@@ -67,7 +89,7 @@ public class TestPump extends TestCase {
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
-    assertEquals(Arrays.asList("0", "115200000", "115200000", "asdf"), getOutputStrings());
+    assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
 
   public void testDiscard() throws IOException {
@@ -77,7 +99,7 @@ public class TestPump extends TestCase {
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
-    assertEquals(Arrays.asList("0", "115200000", "115200000", "asdf"), getOutputStrings());
+    assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
 
   // this is a pretty weak test, since the results are going to get stringified anyays
@@ -90,7 +112,7 @@ public class TestPump extends TestCase {
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
-    assertEquals(Arrays.asList("0", "115200000", "115200000"), getOutputStrings());
+    assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
 
   public void testEachFilter() throws IOException {
@@ -101,7 +123,7 @@ public class TestPump extends TestCase {
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
-    assertEquals(Arrays.asList("0", "115200000", "115200000"), getOutputStrings());
+    assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
 
   public void testEachFunction() throws IOException {
@@ -115,23 +137,68 @@ public class TestPump extends TestCase {
 
     new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
+    assertEquals(Arrays.asList("1970-01-02", "1970-01-01", "1970-01-02"), getOutputStrings());
+  }
+
+  public void testGroupBy() throws Exception {
+    Pipe p = Pump.prime()
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .groupby("date")
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
     assertEquals(Arrays.asList("1970-01-01", "1970-01-02", "1970-01-02"), getOutputStrings());
   }
-  //
-  //public void testSimple() throws IOException {
-  //  fail();
-  //  Pipe p = Pump.prime()
-  //      .each(new RegexFilter("\\d+"))
-  //      .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
-  //      .groupby("date")
-  //      .every(new Count(new Fields("count")))
-  //      .toPipe();
-  //
-  //  new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
-  //
-  //  Set<String> tuples = new HashSet<String>(getOutputStrings());
-  //  assertEquals(new HashSet(Arrays.asList("1970-01-01\t1", "1970-01-02\t2")), getOutputStrings());
-  //}
+
+  public void testAggregator() throws Exception {
+    Pipe p = Pump.prime()
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .groupby("date")
+        .every(new Count(new Fields("count")))
+        .toPipe();
+
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("1970-01-01\t1", "1970-01-02\t2"), getOutputStrings());
+  }
+
+  public void testCoGroup() throws Exception {
+    Pump left = Pump.prime("left")
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .groupby("date")
+        .every(new Count(new Fields("count")));
+    Pump right = Pump.prime("right")
+        .each(new Debug())
+        .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line")
+        .each(new Debug());
+
+
+    Pipe pipe = Pump.cogroup(left, right, "date")
+        .retain("date", "count", "tag")
+        .toPipe();
+
+    Map<String, Tap> inputTaps = new HashMap<String, Tap>() {{
+      put("left", getInTap());
+      put("right", getIn2Tap());
+    }};
+
+    new HadoopFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
+
+    assertEquals(Arrays.asList("1970-01-01\t1\tfirst", "1970-01-02\t2\tsecond"), getOutputStrings());
+  }
 
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
