@@ -4,6 +4,8 @@ import cascading.operation.Aggregator;
 import cascading.operation.Filter;
 import cascading.operation.Function;
 import cascading.pipe.Each;
+import cascading.pipe.Every;
+import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
 import cascading.pipe.assembly.Coerce;
 import cascading.pipe.assembly.Discard;
@@ -60,11 +62,11 @@ public class Pump {
   }
 
   public Pump groupby(String... fields) {
-    return null;
+    return new Pump(new GroupBy(prev, getArgSelector(fields)));
   }
 
   public Pump every(Aggregator agg, String... args) {
-    return null;
+    return new Pump(new Every(prev, getArgSelector(args), agg));
   }
 
   public Pipe toPipe() {
