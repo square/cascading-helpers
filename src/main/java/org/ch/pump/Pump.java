@@ -38,7 +38,7 @@ public class Pump {
   }
 
   public static Pump prime(Pipe pipe) {
-    return null;
+    return new Pump(pipe);
   }
 
   public static Pump cogroup(Pump left, Pump right) {

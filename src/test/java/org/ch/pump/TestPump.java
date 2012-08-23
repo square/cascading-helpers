@@ -111,6 +111,14 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
 
+  public void testPrimeWithPipe() throws Exception {
+    Pipe pipe = new Pipe("input");
+    Pipe p = Pump.prime(pipe).retain("line").toPipe();
+    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
+  }
+
   public void testEachFilter() throws IOException {
     Pipe p = Pump.prime()
         .each(new RegexFilter("^[0-9]+$", false), "line")
