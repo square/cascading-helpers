@@ -16,6 +16,8 @@ import cascading.pipe.assembly.Unique;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
+import java.util.Arrays;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /** Author: duxbury */
 public class Pump {
@@ -98,7 +100,17 @@ public class Pump {
   }
 
   public Pump coerce(String field, Class toClass) {
-    return new Pump(new Coerce(prev, new Fields(field), toClass));
+    return coerce(toClass, field);
+  }
+
+  public Pump coerce(Class toClass, String... fieldsToCoerce) {
+    Class<?>[] classes = new Class<?>[fieldsToCoerce.length];
+    Arrays.fill(classes, toClass);
+    return coerce(fieldsToCoerce, classes);
+  }
+
+  public Pump coerce(String[] fields, Class<?>[] classes) {
+    return new Pump(new Coerce(prev, new Fields(fields), classes));
   }
 
   public Pump rename(String field, String toName) {
