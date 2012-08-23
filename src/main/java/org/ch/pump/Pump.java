@@ -41,10 +41,6 @@ public class Pump {
     return new Pump(pipe);
   }
 
-  public static Pump cogroup(Pump left, Pump right) {
-    return null;
-  }
-
   public static Pump cogroup(Pump left, Pump right, String... cogroupFields) {
     return cogroup(left, right, new InnerJoin(), cogroupFields);
   }
