@@ -39,9 +39,10 @@ public class CascadingHelper {
   private static final int STARTING_TOKEN = 128;
   private static final List<Class> CLASSES_TO_BE_SERIALIZED = new ArrayList<Class>();
 
+  private static final CascadingHelper THE_HELPER = new CascadingHelper();
 
   public static CascadingHelper get() {
-    return new CascadingHelper();
+    return THE_HELPER;
   }
 
   /**
