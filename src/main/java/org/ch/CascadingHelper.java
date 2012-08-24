@@ -28,8 +28,7 @@ public class CascadingHelper {
   private static boolean testMode = false;
 
   // private so that this class may not be instantiated
-  private CascadingHelper() {
-  }
+  protected CascadingHelper() {}
 
   protected static final Map<Object, Object> DEFAULT_PROPERTIES = new HashMap<Object, Object>();
   protected static final List<Class<? extends Serialization>> SERIALIZATION_IMPLS =
