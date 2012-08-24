@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.ch.CascadingHelper;
 
 /** Author: duxbury */
 public class TestPump extends TestCase {
@@ -47,6 +48,7 @@ public class TestPump extends TestCase {
   }};
 
   public void setUp() throws Exception {
+    CascadingHelper.setTestMode();
     FileSystem.get(new Configuration()).delete(new Path(INPUT_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(INPUT2_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH), true);
@@ -83,7 +85,7 @@ public class TestPump extends TestCase {
         .retain("line")
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -93,7 +95,7 @@ public class TestPump extends TestCase {
         .discard("offset")
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -106,7 +108,7 @@ public class TestPump extends TestCase {
         .coerce("line", long.class)
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
@@ -114,7 +116,7 @@ public class TestPump extends TestCase {
   public void testPrimeWithPipe() throws Exception {
     Pipe pipe = new Pipe("input");
     Pipe p = Pump.prime(pipe).retain("line").toPipe();
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -125,7 +127,7 @@ public class TestPump extends TestCase {
         .retain("line")
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
@@ -139,7 +141,7 @@ public class TestPump extends TestCase {
         .retain("date")
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-02", "1970-01-01", "1970-01-02"), getOutputStrings());
   }
@@ -154,7 +156,7 @@ public class TestPump extends TestCase {
         .groupby("date")
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-01", "1970-01-02", "1970-01-02"), getOutputStrings());
   }
@@ -170,7 +172,7 @@ public class TestPump extends TestCase {
         .every(new Count(new Fields("count")))
         .toPipe();
 
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-01\t1", "1970-01-02\t2"), getOutputStrings());
   }
@@ -196,13 +198,13 @@ public class TestPump extends TestCase {
       put("right", getIn2Tap());
     }};
 
-    new HadoopFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
+    CascadingHelper.getFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
 
     assertEquals(Arrays.asList("1970-01-01\t1\tfirst", "1970-01-02\t2\tsecond"), getOutputStrings());
   }
 
   public void testUnique() throws Exception {
-    new HadoopFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
+    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
   }
 
