@@ -85,7 +85,7 @@ public class TestPump extends TestCase {
         .retain("line")
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -95,7 +95,7 @@ public class TestPump extends TestCase {
         .discard("offset")
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -108,7 +108,7 @@ public class TestPump extends TestCase {
         .coerce("line", long.class)
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
@@ -116,7 +116,7 @@ public class TestPump extends TestCase {
   public void testPrimeWithPipe() throws Exception {
     Pipe pipe = new Pipe("input");
     Pipe p = Pump.prime(pipe).retain("line").toPipe();
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
@@ -127,7 +127,7 @@ public class TestPump extends TestCase {
         .retain("line")
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("115200000", "0", "115200000"), getOutputStrings());
   }
@@ -141,7 +141,7 @@ public class TestPump extends TestCase {
         .retain("date")
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-02", "1970-01-01", "1970-01-02"), getOutputStrings());
   }
@@ -156,7 +156,7 @@ public class TestPump extends TestCase {
         .groupby("date")
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-01", "1970-01-02", "1970-01-02"), getOutputStrings());
   }
@@ -172,7 +172,7 @@ public class TestPump extends TestCase {
         .every(new Count(new Fields("count")))
         .toPipe();
 
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
 
     assertEquals(Arrays.asList("1970-01-01\t1", "1970-01-02\t2"), getOutputStrings());
   }
@@ -198,13 +198,13 @@ public class TestPump extends TestCase {
       put("right", getIn2Tap());
     }};
 
-    CascadingHelper.getFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
+    CascadingHelper.get().getFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
 
     assertEquals(Arrays.asList("1970-01-01\t1\tfirst", "1970-01-02\t2\tsecond"), getOutputStrings());
   }
 
   public void testUnique() throws Exception {
-    CascadingHelper.getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
   }
 
