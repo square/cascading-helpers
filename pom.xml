@@ -29,7 +29,7 @@
 
     <name>cascading-helpers</name>
     <description>A set of tools for working with Cascading Flows</description>
-    <url>https://github.com/bryanduxbury/cascading-helpers</url>
+    <url>https://github.com/square/cascading-helpers</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,9 +40,9 @@
     </properties>
 
     <scm>
-        <url>https://github.com/bryanduxbury/cascading-helpers</url>
-        <connection>scm:git:https://github.com/bryanduxbury/cascading-helpers</connection>
-        <developerConnection>scm:git:git@github.com:bryanduxbury/cascading-helpers.git</developerConnection>
+        <url>https://github.com/square/cascading-helpers</url>
+        <connection>scm:git:https://github.com/square/cascading-helpers</connection>
+        <developerConnection>scm:git:git@github.com:square/cascading-helpers.git</developerConnection>
     </scm>
 
     <licenses>
