@@ -100,6 +100,16 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("115200000", "0", "115200000", "asdf"), getOutputStrings());
   }
 
+  public void testReplace() throws Exception {
+    Pipe p = Pump.prime()
+        .replace("offset", "line")
+        .toPipe();
+
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("0", "10", "12", "22"), getOutputStrings());
+  }
+
   // this is a pretty weak test, since the results are going to get stringified anyays
   public void testCoerce() throws Exception {
     Pipe p = Pump.prime()

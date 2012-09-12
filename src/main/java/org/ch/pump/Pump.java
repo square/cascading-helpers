@@ -116,4 +116,8 @@ public class Pump {
   public Pump rename(String field, String toName) {
     return new Pump(new Rename(prev, new Fields(field), new Fields(toName)));
   }
+
+  public Pump replace(String field, String toName) {
+    return discard(toName).rename(field, toName);
+  }
 }
