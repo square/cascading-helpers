@@ -189,7 +189,7 @@ public class TestPump extends TestCase {
     Pump right = Pump.prime("right")
         .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line");
 
-    Pipe pipe = Pump.cogroup(left, right, "date")
+    Pipe pipe = left.cogroup(right, "date")
         .retain("date", "count", "tag")
         .toPipe();
 
