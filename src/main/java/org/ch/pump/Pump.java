@@ -43,6 +43,14 @@ public class Pump {
     return new Pump(pipe);
   }
 
+  public Pump cogroup(Pump other, String... cogroupFields) {
+	  return cogroup(this, other, cogroupFields);
+  }
+  
+  public Pump cogroup(Pump other, Joiner joiner, String... cogroupFields) {
+	  return cogroup(this, other, joiner, cogroupFields);
+  }
+  
   public static Pump cogroup(Pump left, Pump right, String... cogroupFields) {
     return cogroup(left, right, new InnerJoin(), cogroupFields);
   }
