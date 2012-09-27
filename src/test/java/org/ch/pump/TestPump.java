@@ -189,7 +189,7 @@ public class TestPump extends TestCase {
     Pump right = Pump.prime("right")
         .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line");
 
-    Pipe pipe = left.cogroup(right, "date")
+    Pipe pipe = Pump.cogroup(left, right, "date")
         .retain("date", "count", "tag")
         .toPipe();
 
@@ -203,6 +203,24 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("1970-01-01\t1\tfirst", "1970-01-02\t2\tsecond"), getOutputStrings());
   }
 
+  public void testCoGroupEquality() {
+	Pump left = Pump.prime("left")
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .groupby("date")
+        .every(new Count(new Fields("count")));
+    Pump right = Pump.prime("right")
+        .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line");
+
+    Pipe nsp = left.cogroup(right, "date").toPipe();
+    Pipe stp = Pump.cogroup(left, right, "date").toPipe();
+    assertEquals(nsp.toString(), stp.toString());
+    assertTrue(Arrays.equals(nsp.getHeads(), stp.getHeads()));
+  }
+  
   public void testUnique() throws Exception {
     CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
