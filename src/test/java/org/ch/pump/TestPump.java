@@ -6,6 +6,7 @@ import cascading.operation.aggregator.Count;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
+import cascading.pipe.CoGroup;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Tap;
@@ -225,10 +226,20 @@ public class TestPump extends TestCase {
     Pump right = Pump.prime("right")
         .each(new RegexSplitter(new Fields("date", "tag"),"\t"), "line");
 
-    Pipe nsp = left.cogroup(right, "date").toPipe();
-    Pipe stp = Pump.cogroup(left, right, "date").toPipe();
-    assertEquals(nsp.toString(), stp.toString());
-    assertTrue(Arrays.equals(nsp.getHeads(), stp.getHeads()));
+    CoGroup nonStaticPump = (CoGroup)left.cogroup(right, "date").toPipe();
+    CoGroup staticPump = (CoGroup)Pump.cogroup(left, right, "date").toPipe();
+    assertEquals(nonStaticPump.toString(), staticPump.toString());
+    
+    // NOTE: Since coGroup includes a rename internally, there is no way these two
+    // arrays will ever be equal, since Pipe's equal checks object identity. The
+    // left side is unmodified though, and can be checked for equality.
+    Pipe[] nonStaticHeads = nonStaticPump.getPrevious();
+    Pipe[] staticHeads = staticPump.getPrevious();
+    assertEquals(2, nonStaticHeads.length);
+    assertEquals(2, staticHeads.length);
+    assertEquals(nonStaticHeads[0], staticHeads[0]);
+    assertEquals(nonStaticHeads[1].toString(), staticHeads[1].toString()); 
+    
   }
   
   public void testUnique() throws Exception {
