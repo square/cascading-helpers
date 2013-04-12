@@ -28,7 +28,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.ch.CascadingHelper;
 
-/** Author: duxbury */
 public class TestPump extends TestCase {
 
   private static final String INPUT_PATH = "/tmp/TestPump/input";
@@ -237,7 +236,7 @@ public class TestPump extends TestCase {
     Pipe[] staticHeads = staticPump.getPrevious();
     assertEquals(2, nonStaticHeads.length);
     assertEquals(2, staticHeads.length);
-    assertEquals(nonStaticHeads[0], staticHeads[0]);
+    assertEquals(nonStaticHeads[0].toString(), staticHeads[0].toString());
     assertEquals(nonStaticHeads[1].toString(), staticHeads[1].toString()); 
     
   }

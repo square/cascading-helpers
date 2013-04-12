@@ -19,28 +19,20 @@ import cascading.tuple.Fields;
 import java.util.Arrays;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-/** Author: duxbury */
-public class Pump {
-  private final Pipe prev;
-
-  private Pump(String name) {
-    this.prev = new Pipe(name);
-  }
-
-  private Pump(Pipe prev) {
-    this.prev = prev;
-  }
+public abstract class Pump {
+  abstract Pump getPrev();
+  abstract Pipe toPipe();
 
   public static Pump prime() {
     return prime("input");
   }
 
   public static Pump prime(String pipeName) {
-    return new Pump(pipeName);
+    return new PipeAdapterPump(pipeName);
   }
 
   public static Pump prime(Pipe pipe) {
-    return new Pump(pipe);
+    return new PipeAdapterPump(pipe);
   }
 
   public Pump cogroup(Pump other, String... cogroupFields) {
@@ -64,10 +56,10 @@ public class Pump {
       right = right.rename(cogroupField, modifieldField);
     }
 
-    return new Pump(new CoGroup(left.toPipe(), getArgSelector(cogroupFields), right.toPipe(), getArgSelector(modifiedCogroupFields), joiner));
+    return new PipeAdapterPump(new CoGroup(left.toPipe(), getArgSelector(cogroupFields), right.toPipe(), getArgSelector(modifiedCogroupFields), joiner));
   }
 
-  private static Fields getArgSelector(String... args) {
+  static Fields getArgSelector(String... args) {
     Fields f = Fields.ALL;
     if (args.length > 0) {
       f = new Fields(args);
@@ -76,35 +68,31 @@ public class Pump {
   }
 
   public Pump each(Function function, String... args) {
-    return new Pump(new Each(prev, getArgSelector(args), function, Fields.ALL));
+    return new FunctionPump(this, function, args);
   }
 
   public Pump each(Filter filter, String... args) {
-    return new Pump(new Each(prev, getArgSelector(args), filter));
+    return new FilterPump(this, filter, args);
   }
 
   public Pump unique(String... uniqueFields) {
-    return new Pump(new Unique(prev, getArgSelector(uniqueFields)));
+    return new PipeAdapterPump(new Unique(toPipe(), getArgSelector(uniqueFields)));
   }
 
   public Pump groupby(String... fields) {
-    return new Pump(new GroupBy(prev, getArgSelector(fields)));
+    return new PipeAdapterPump(new GroupBy(toPipe(), getArgSelector(fields)));
   }
 
   public Pump every(Aggregator agg, String... args) {
-    return new Pump(new Every(prev, getArgSelector(args), agg));
-  }
-
-  public Pipe toPipe() {
-    return prev;
+    return new EveryPump(this, agg, args);
   }
 
   public Pump retain(String ... fieldsToKeep) {
-    return new Pump(new Retain(prev, getArgSelector(fieldsToKeep)));
+    return new PipeAdapterPump(new Retain(toPipe(), getArgSelector(fieldsToKeep)));
   }
 
   public Pump discard(String ... fieldsToDiscard) {
-    return new Pump(new Discard(prev, getArgSelector(fieldsToDiscard)));
+    return new PipeAdapterPump(new Discard(toPipe(), getArgSelector(fieldsToDiscard)));
   }
 
   public Pump coerce(String field, Class toClass) {
@@ -118,11 +106,11 @@ public class Pump {
   }
 
   public Pump coerce(String[] fields, Class<?>[] classes) {
-    return new Pump(new Coerce(prev, new Fields(fields), classes));
+    return new PipeAdapterPump(new Coerce(toPipe(), new Fields(fields), classes));
   }
 
   public Pump rename(String field, String toName) {
-    return new Pump(new Rename(prev, new Fields(field), new Fields(toName)));
+    return new PipeAdapterPump(new Rename(toPipe(), new Fields(field), new Fields(toName)));
   }
 
   public Pump replace(String field, String toName) {
