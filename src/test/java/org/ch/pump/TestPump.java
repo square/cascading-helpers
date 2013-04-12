@@ -1,13 +1,22 @@
 package org.ch.pump;
 
+import cascading.flow.FlowDef;
+import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import cascading.operation.Aggregator;
+import cascading.operation.AggregatorCall;
+import cascading.operation.BaseOperation;
+import cascading.operation.Buffer;
+import cascading.operation.BufferCall;
 import cascading.operation.aggregator.Count;
+import cascading.operation.aggregator.First;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.CoGroup;
 import cascading.pipe.Pipe;
+import cascading.scheme.hadoop.SequenceFile;
 import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
@@ -214,7 +223,7 @@ public class TestPump extends TestCase {
   }
 
   public void testCoGroupEquality() {
-	Pump left = Pump.prime("left")
+	  Pump left = Pump.prime("left")
         .each(new RegexFilter("^[0-9]+$", false), "line")
         .retain("line")
         .coerce("line", int.class)
@@ -237,10 +246,65 @@ public class TestPump extends TestCase {
     assertEquals(2, nonStaticHeads.length);
     assertEquals(2, staticHeads.length);
     assertEquals(nonStaticHeads[0].toString(), staticHeads[0].toString());
-    assertEquals(nonStaticHeads[1].toString(), staticHeads[1].toString()); 
-    
+    assertEquals(nonStaticHeads[1].toString(), staticHeads[1].toString());
   }
-  
+
+  public void testGroupBySecondarySort() throws IOException {
+    String inputPath = "/tmp/TestPump/group_by_sec_sort";
+    FileSystem.get(new Configuration()).delete(new Path(inputPath), true);
+
+    Tap inTap = new Hfs(new SequenceFile(new Fields("key1", "key2")), inputPath);
+    TupleEntryCollector collector = inTap.openForWrite(new HadoopFlowProcess());
+    collector.add(new Tuple("key1", "value2"));
+    collector.add(new Tuple("key1", "value1"));
+    collector.close();
+
+    Pump pump = Pump.prime()
+        .retain("key1", "key2")
+        .groupby("key1")
+        .secondarySort("key2")
+        .every(new First(new Fields("key11", "key21")), "key1", "key2");
+        //.every(new DebugAggregator(), "key1", "key2");
+    Pipe tail = pump.toPipe();
+
+    FlowDef flowDef = new FlowDef()
+        .addSource("input", inTap)
+        .addTail(tail)
+        .addSink(tail, new Hfs(new TextLine(new Fields("key1"), new Fields("key11", "key21")), OUTPUT_PATH));
+
+    CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
+    List<String> outputStrings = getOutputStrings();
+    assertEquals(Arrays.asList("key1\tvalue1"), outputStrings);
+  }
+
+  public void testGroupBySecondarySortReversed() throws IOException {
+    String inputPath = "/tmp/TestPump/group_by_sec_sort";
+    FileSystem.get(new Configuration()).delete(new Path(inputPath), true);
+
+    Tap inTap = new Hfs(new SequenceFile(new Fields("key1", "key2")), inputPath);
+    TupleEntryCollector collector = inTap.openForWrite(new HadoopFlowProcess());
+    collector.add(new Tuple("key1", "value1"));
+    collector.add(new Tuple("key1", "value2"));
+    collector.close();
+
+    Pump pump = Pump.prime()
+        .retain("key1", "key2")
+        .groupby("key1")
+        .secondarySort("key2")
+        .inReverse()
+        .every(new First(new Fields("key11", "key21")), "key1", "key2");
+    Pipe tail = pump.toPipe();
+
+    FlowDef flowDef = new FlowDef()
+        .addSource("input", inTap)
+        .addTail(tail)
+        .addSink(tail, new Hfs(new TextLine(new Fields("key1"), new Fields("key11", "key21")), OUTPUT_PATH));
+
+    CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
+    List<String> outputStrings = getOutputStrings();
+    assertEquals(Arrays.asList("key1\tvalue2"), outputStrings);
+  }
+
   public void testUnique() throws Exception {
     CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
@@ -253,5 +317,24 @@ public class TestPump extends TestCase {
       results.add(iter.next().getString(1));
     }
     return results;
+  }
+
+  private static class DebugAggregator extends BaseOperation implements Aggregator {
+    //@Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
+    //  System.out.println(bufferCall);
+    //}
+
+    @Override public void start(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override public void aggregate(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
+      //To change body of implemented methods use File | Settings | File Templates.
+      System.out.println(aggregatorCall.getArguments());
+    }
+
+    @Override public void complete(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
   }
 }

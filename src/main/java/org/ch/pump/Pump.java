@@ -35,19 +35,19 @@ public abstract class Pump {
     return new PipeAdapterPump(pipe);
   }
 
-  public Pump cogroup(Pump other, String... cogroupFields) {
+  public CoGroupPump cogroup(Pump other, String... cogroupFields) {
 	  return cogroup(this, other, cogroupFields);
   }
   
-  public Pump cogroup(Pump other, Joiner joiner, String... cogroupFields) {
+  public CoGroupPump cogroup(Pump other, Joiner joiner, String... cogroupFields) {
 	  return cogroup(this, other, joiner, cogroupFields);
   }
   
-  public static Pump cogroup(Pump left, Pump right, String... cogroupFields) {
+  public static CoGroupPump cogroup(Pump left, Pump right, String... cogroupFields) {
     return cogroup(left, right, new InnerJoin(), cogroupFields);
   }
 
-  public static Pump cogroup(Pump left, Pump right, Joiner joiner, String... cogroupFields) {
+  public static CoGroupPump cogroup(Pump left, Pump right, Joiner joiner, String... cogroupFields) {
     String[] modifiedCogroupFields = new String[cogroupFields.length];
     for (int i = 0; i < cogroupFields.length; i++) {
       String cogroupField = cogroupFields[i];
@@ -56,7 +56,7 @@ public abstract class Pump {
       right = right.rename(cogroupField, modifieldField);
     }
 
-    return new PipeAdapterPump(new CoGroup(left.toPipe(), getArgSelector(cogroupFields), right.toPipe(), getArgSelector(modifiedCogroupFields), joiner));
+    return new CoGroupPump(left, cogroupFields, right, modifiedCogroupFields, joiner);
   }
 
   static Fields getArgSelector(String... args) {
@@ -79,8 +79,8 @@ public abstract class Pump {
     return new PipeAdapterPump(new Unique(toPipe(), getArgSelector(uniqueFields)));
   }
 
-  public Pump groupby(String... fields) {
-    return new PipeAdapterPump(new GroupBy(toPipe(), getArgSelector(fields)));
+  public GroupByPump groupby(String... fields) {
+    return new GroupByPump(this, fields);
   }
 
   public Pump every(Aggregator agg, String... args) {
