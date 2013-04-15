@@ -2,21 +2,16 @@ package org.ch;
 
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
-import cascading.operation.aggregator.First;
 import cascading.tuple.hadoop.TupleSerialization;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import javax.naming.directory.SchemaViolationException;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.WritableSerialization;
 import org.apache.hadoop.mapred.JobConf;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * CascadingHelper is designed to help you avoid the pain of using a standardized (and
