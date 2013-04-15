@@ -45,6 +45,10 @@ public class TestMapLookup extends TestCase {
         return new TupleEntry(f.getFieldDeclaration(), argument);
       }
 
+      @Override public Fields getDeclaredFields() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+      }
+
       @Override public TupleEntryCollector getOutputCollector() {
         TupleEntryCollector mockOutputCollector = new TupleEntryCollector() {
           @Override protected void collect(TupleEntry tupleEntry) throws IOException {
