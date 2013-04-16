@@ -1,6 +1,7 @@
 package org.ch.pump;
 
 import cascading.operation.Aggregator;
+import cascading.operation.Buffer;
 import cascading.operation.Filter;
 import cascading.operation.Function;
 import cascading.pipe.CoGroup;
@@ -84,7 +85,11 @@ public abstract class Pump {
   }
 
   public Pump every(Aggregator agg, String... args) {
-    return new EveryPump(this, agg, args);
+    return new AggregatorPump(this, agg, args);
+  }
+
+  public Pump every(Buffer buffer, String... args) {
+    return new BufferPump(this, buffer, args);
   }
 
   public Pump retain(String ... fieldsToKeep) {

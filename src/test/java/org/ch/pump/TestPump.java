@@ -9,6 +9,7 @@ import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
+import cascading.operation.Insert;
 import cascading.operation.aggregator.Count;
 import cascading.operation.aggregator.First;
 import cascading.operation.regex.RegexFilter;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import junit.framework.TestCase;
@@ -196,6 +198,25 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("1970-01-01\t1", "1970-01-02\t2"), getOutputStrings());
   }
 
+  public void testBuffer() throws Exception {
+    Pipe p = Pump.prime()
+        .each(new RegexFilter("^[0-9]+$", false), "line")
+        .retain("line")
+        .coerce("line", int.class)
+        .each(new DateFormatter(new Fields("date"), "yyyy-MM-dd"))
+        .retain("date")
+        .each(new Insert(new Fields("key"), 1))
+        .groupby("key")
+        .secondarySort("date")
+        .every(new BufferFirst(), "date")
+        .retain("date2")
+        .toPipe();
+
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("1970-01-01"), getOutputStrings());
+  }
+
   public void testCoGroup() throws Exception {
     Pump left = Pump.prime("left")
         .each(new RegexFilter("^[0-9]+$", false), "line")
@@ -319,22 +340,14 @@ public class TestPump extends TestCase {
     return results;
   }
 
-  private static class DebugAggregator extends BaseOperation implements Aggregator {
-    //@Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
-    //  System.out.println(bufferCall);
-    //}
-
-    @Override public void start(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
-      //To change body of implemented methods use File | Settings | File Templates.
+  private static class BufferFirst extends BaseOperation implements Buffer {
+    private BufferFirst() {
+      super(new Fields("date2"));
     }
 
-    @Override public void aggregate(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
-      //To change body of implemented methods use File | Settings | File Templates.
-      System.out.println(aggregatorCall.getArguments());
-    }
-
-    @Override public void complete(FlowProcess flowProcess, AggregatorCall aggregatorCall) {
-      //To change body of implemented methods use File | Settings | File Templates.
+    @Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
+      Iterator<TupleEntry> argumentsIterator = bufferCall.getArgumentsIterator();
+      bufferCall.getOutputCollector().add(argumentsIterator.next().getTuple());
     }
   }
 }
