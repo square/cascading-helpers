@@ -12,7 +12,7 @@ public class BufferPump extends EveryPump {
     this.buffer = buffer;
   }
 
-  @Override Pipe toPipe() {
+  @Override public Pipe toPipe() {
     return new Every(getPrev().toPipe(), getArgSelector(args), buffer);
   }
 }

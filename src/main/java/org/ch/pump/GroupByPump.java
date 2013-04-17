@@ -39,7 +39,7 @@ public class GroupByPump extends Pump {
     throw new UnsupportedOperationException();
   }
 
-  @Override Pipe toPipe() {
+  @Override public Pipe toPipe() {
     return new GroupBy(prev.toPipe(), getArgSelector(fields), new Fields(sortFields), order);
   }
 }

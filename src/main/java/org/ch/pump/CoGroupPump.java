@@ -25,7 +25,7 @@ public class CoGroupPump extends Pump {
     throw new UnsupportedOperationException("doesn't make sense to get the singular prev of a cogroup");
   }
 
-  @Override Pipe toPipe() {
+  @Override public Pipe toPipe() {
     return new CoGroup(left.toPipe(), getArgSelector(cogroupFields), right.toPipe(), getArgSelector(modifiedCogroupFields), joiner);
   }
 }

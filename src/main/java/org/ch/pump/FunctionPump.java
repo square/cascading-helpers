@@ -15,7 +15,7 @@ public class FunctionPump extends InternalPump {
     this.args = args;
   }
 
-  @Override Pipe toPipe() {
+  @Override public Pipe toPipe() {
     return new Each(getPrev().toPipe(), getArgSelector(args), function, Fields.ALL);
   }
 }
