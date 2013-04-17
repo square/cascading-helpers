@@ -4,10 +4,6 @@ import cascading.operation.Aggregator;
 import cascading.operation.Buffer;
 import cascading.operation.Filter;
 import cascading.operation.Function;
-import cascading.pipe.CoGroup;
-import cascading.pipe.Each;
-import cascading.pipe.Every;
-import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
 import cascading.pipe.assembly.Coerce;
 import cascading.pipe.assembly.Discard;
@@ -18,7 +14,6 @@ import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
 import java.util.Arrays;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public abstract class Pump {
   abstract Pump getPrev();
