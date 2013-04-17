@@ -22,7 +22,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public abstract class Pump {
   abstract Pump getPrev();
-  abstract Pipe toPipe();
+  public abstract Pipe toPipe();
 
   public static Pump prime() {
     return prime("input");
