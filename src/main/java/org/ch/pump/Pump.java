@@ -13,7 +13,9 @@ import cascading.pipe.assembly.Unique;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
 import java.util.Arrays;
+import org.ch.function.GetOrElse;
 
 public abstract class Pump {
   abstract Pump getPrev();
@@ -115,5 +117,9 @@ public abstract class Pump {
 
   public Pump replace(String field, String toName) {
     return discard(toName).rename(field, toName);
+  }
+
+  public Pump getOrElse(String fromField, String toField, Tuple value) {
+    return new FunctionPump(this, new GetOrElse(value, toField), new String[] {fromField});
   }
 }
