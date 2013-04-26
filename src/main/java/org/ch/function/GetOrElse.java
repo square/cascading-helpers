@@ -12,6 +12,9 @@ public class GetOrElse extends BaseOperation implements Function {
 
   public GetOrElse(Tuple value, String name) {
     super(1, new Fields(name));
+    if (value.size() != 1) {
+      throw new IllegalArgumentException("tuple size must be 1");
+    }
     this.value = value;
   }
 

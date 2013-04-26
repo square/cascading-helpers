@@ -20,7 +20,7 @@ public class FunctionHelper extends TestCase {
       }
 
       @Override public Fields getDeclaredFields() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
       }
 
       @Override public TupleEntryCollector getOutputCollector() {
