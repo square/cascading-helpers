@@ -4,6 +4,7 @@ import cascading.operation.Function;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.tuple.Fields;
+import org.ch.function.StacktraceWrapperFunction;
 
 public class FunctionPump extends InternalPump {
   private Function function;
@@ -16,6 +17,6 @@ public class FunctionPump extends InternalPump {
   }
 
   @Override public Pipe toPipe() {
-    return new Each(getPrev().toPipe(), getArgSelector(args), function, Fields.ALL);
+    return new Each(getPrev().toPipe(), getArgSelector(args), new StacktraceWrapperFunction(function, getStackTrace()), Fields.ALL);
   }
 }

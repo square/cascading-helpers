@@ -9,6 +9,10 @@ import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
+import cascading.operation.Filter;
+import cascading.operation.FilterCall;
+import cascading.operation.Function;
+import cascading.operation.FunctionCall;
 import cascading.operation.Insert;
 import cascading.operation.aggregator.Count;
 import cascading.operation.aggregator.First;
@@ -331,6 +335,26 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
   }
 
+  // note(duxbury): this doesn't verify anything. it's meant to be used for manually observing the results of the stack trace goodness.
+  public void testFunctionStackTraces() {
+    try {
+      CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().each(new FailingFunction()).toPipe()).complete();
+      fail("was expecting a failure");
+    } catch (Exception e) {
+      // expecting an exception here
+    }
+  }
+
+  // note(duxbury): this doesn't verify anything. it's meant to be used for manually observing the results of the stack trace goodness.
+  public void testFilterStackTraces() {
+    try {
+      CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().each(new FailingFilter()).toPipe()).complete();
+      fail("was expecting a failure");
+    } catch (Exception e) {
+      // expecting an exception here
+    }
+  }
+
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
     List<String> results = new ArrayList<String>();
@@ -348,6 +372,18 @@ public class TestPump extends TestCase {
     @Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
       Iterator<TupleEntry> argumentsIterator = bufferCall.getArgumentsIterator();
       bufferCall.getOutputCollector().add(argumentsIterator.next().getTuple());
+    }
+  }
+
+  private static class FailingFunction extends BaseOperation implements Function {
+    @Override public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
+      throw new RuntimeException("intentional failure kthxbye");
+    }
+  }
+
+  private static class FailingFilter extends BaseOperation implements Filter {
+    @Override public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
+      throw new RuntimeException("intentional failure kthxbye");
     }
   }
 }

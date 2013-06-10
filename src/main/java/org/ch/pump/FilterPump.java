@@ -3,6 +3,7 @@ package org.ch.pump;
 import cascading.operation.Filter;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
+import org.ch.filter.StacktraceWrapperFilter;
 
 public class FilterPump extends InternalPump {
   private final Filter filter;
@@ -15,6 +16,6 @@ public class FilterPump extends InternalPump {
   }
 
   @Override public Pipe toPipe() {
-    return new Each(getPrev().toPipe(), getArgSelector(args), filter);
+    return new Each(getPrev().toPipe(), getArgSelector(args), new StacktraceWrapperFilter(filter, getStackTrace()));
   }
 }
