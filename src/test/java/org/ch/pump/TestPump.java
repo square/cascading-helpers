@@ -68,6 +68,7 @@ public class TestPump extends TestCase {
     FileSystem.get(new Configuration()).delete(new Path(INPUT_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(INPUT2_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH), true);
+    FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH2), true);
 
     Tap inTap = getInTap();
     TupleEntryCollector tec = inTap.openForWrite(new HadoopFlowProcess());
