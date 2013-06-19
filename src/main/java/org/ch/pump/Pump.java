@@ -15,11 +15,21 @@ import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import java.util.Arrays;
+import java.util.UUID;
 import org.ch.function.GetOrElse;
 
 public abstract class Pump {
+  private Pipe memoizedPipe;
+
   abstract Pump getPrev();
-  public abstract Pipe toPipe();
+  abstract Pipe getPipeInternal();
+
+  public final Pipe toPipe() {
+    if (memoizedPipe == null) {
+      memoizedPipe = getPipeInternal();
+    }
+    return memoizedPipe;
+  }
 
   public static Pump prime() {
     return prime("input");
@@ -121,5 +131,13 @@ public abstract class Pump {
 
   public Pump getOrElse(String fromField, String toField, Tuple value) {
     return new FunctionPump(this, new GetOrElse(value, toField), new String[] {fromField});
+  }
+
+  public Pump branch() {
+    return branch(UUID.randomUUID().toString());
+  }
+
+  private Pump branch(String branchName) {
+    return new BranchPump(this, branchName);
   }
 }

@@ -17,7 +17,7 @@ public class PipeAdapterPump extends Pump {
     return null;
   }
 
-  @Override public Pipe toPipe() {
+  @Override public Pipe getPipeInternal() {
     return pipe;
   }
 }

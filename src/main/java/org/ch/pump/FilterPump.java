@@ -15,7 +15,7 @@ public class FilterPump extends InternalPump {
     this.args = args;
   }
 
-  @Override public Pipe toPipe() {
+  @Override public Pipe getPipeInternal() {
     return new Each(getPrev().toPipe(), getArgSelector(args), new StacktraceWrapperFilter(filter, getStackTrace()));
   }
 }

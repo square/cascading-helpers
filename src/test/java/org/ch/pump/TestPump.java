@@ -48,6 +48,7 @@ public class TestPump extends TestCase {
   private static final String INPUT_PATH = "/tmp/TestPump/input";
   private static final String INPUT2_PATH = "/tmp/TestPump/input2";
   private static final String OUTPUT_PATH = "/tmp/TestPump/output";
+  private static final String OUTPUT_PATH2 = "/tmp/TestPump/output2";
 
   private static final List<Tuple> INPUT_TUPLES = new ArrayList<Tuple>(){{
     add(new Tuple("115200000"));
@@ -93,6 +94,10 @@ public class TestPump extends TestCase {
 
   public Tap getOutTap() {
     return new Hfs(new TextLine(), OUTPUT_PATH);
+  }
+
+  public Tap getOutTap2() {
+    return new Hfs(new TextLine(), OUTPUT_PATH2);
   }
 
   public void testRetain() throws IOException {
@@ -354,6 +359,26 @@ public class TestPump extends TestCase {
       // expecting an exception here
     }
   }
+
+  public void testBranching() throws Exception {
+    Pump common = Pump.prime()
+        .retain("offset", "line");
+
+    Pump branch1 = common.branch().groupby("offset")
+        .every(new Count());
+
+    Pump branch2 = common.branch().groupby("line")
+        .every(new Count());
+
+    FlowDef flowDef = new FlowDef()
+        .addSource("input", getInTap())
+        .addTailSink(branch1.toPipe(), getOutTap())
+        .addTailSink(branch2.toPipe(), getOutTap2());
+
+    // really just looking to see if this will plan and execute at all; results are meaningless
+    CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
+  }
+
 
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);

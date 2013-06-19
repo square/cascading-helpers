@@ -12,7 +12,7 @@ public class AggregatorPump extends EveryPump {
     this.agg = agg;
   }
 
-  @Override public Pipe toPipe() {
+  @Override public Pipe getPipeInternal() {
     return new Every(getPrev().toPipe(), getArgSelector(args), agg);
   }
 }
