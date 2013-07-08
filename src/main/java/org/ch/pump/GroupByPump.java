@@ -35,8 +35,12 @@ public class GroupByPump extends Pump {
     return this;
   }
 
+  public Fields getFields() {
+    return getArgSelector(fields);
+  }
+
   @Override Pump getPrev() {
-    throw new UnsupportedOperationException();
+    return this.prev;
   }
 
   @Override public Pipe getPipeInternal() {

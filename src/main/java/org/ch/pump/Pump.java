@@ -5,10 +5,15 @@ import cascading.operation.Buffer;
 import cascading.operation.Filter;
 import cascading.operation.Function;
 import cascading.pipe.Pipe;
+import cascading.pipe.assembly.AggregateBy;
+import cascading.pipe.assembly.AverageBy;
 import cascading.pipe.assembly.Coerce;
+import cascading.pipe.assembly.CountBy;
 import cascading.pipe.assembly.Discard;
+import cascading.pipe.assembly.FirstBy;
 import cascading.pipe.assembly.Rename;
 import cascading.pipe.assembly.Retain;
+import cascading.pipe.assembly.SumBy;
 import cascading.pipe.assembly.Unique;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
@@ -91,7 +96,29 @@ public abstract class Pump {
     return new GroupByPump(this, fields);
   }
 
-  public Pump every(Aggregator agg, String... args) {
+  public Pump aggregateby(AggregateBy.Functor functor, Aggregator aggregator, String... args) {
+    return new AggregateByPump(this, functor, aggregator, args);
+  }
+
+  public Pump average(String valueField, String averageField) {
+    return new AggregateByPump(this,
+        new AverageBy(new Fields(valueField), new Fields(averageField)));
+  }
+
+  public Pump count(String countField) {
+    return new AggregateByPump(this, new CountBy(new Fields(countField)));
+  }
+
+  public Pump first(String... firstFields) {
+    return new AggregateByPump(this, new FirstBy(new Fields(firstFields)));
+  }
+
+  public Pump sum(String valueField, String sumField) {
+    return new AggregateByPump(this, new SumBy(new Fields(valueField), new Fields(sumField),
+        double.class));
+  }
+
+  public AggregatorPump every(Aggregator agg, String... args) {
     return new AggregatorPump(this, agg, args);
   }
 

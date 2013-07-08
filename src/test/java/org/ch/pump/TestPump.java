@@ -16,11 +16,14 @@ import cascading.operation.FunctionCall;
 import cascading.operation.Insert;
 import cascading.operation.aggregator.Count;
 import cascading.operation.aggregator.First;
+import cascading.operation.aggregator.Max;
+import cascading.operation.aggregator.Sum;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.CoGroup;
 import cascading.pipe.Pipe;
+import cascading.pipe.assembly.AggregateBy;
 import cascading.scheme.hadoop.SequenceFile;
 import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Tap;
@@ -380,6 +383,45 @@ public class TestPump extends TestCase {
     CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
   }
 
+  public void testAggregateBy() throws Exception {
+    Pipe p = Pump.prime()
+        .groupby("line")
+        .aggregateby(new MaxFunctor(), new Max(), "offset")
+        .retain("max")
+        .coerce("max", int.class)
+        .toPipe();
+
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("10", "12", "22"), getOutputStrings());
+  }
+
+  public void testMultipleAggregateBy() throws Exception {
+    Pipe p = Pump.prime()
+        .groupby("line")
+        .count("count")
+        .sum("offset", "sum")
+        .retain("line", "count", "sum")
+        .coerce("sum", int.class)
+        .toPipe();
+
+    CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), p).complete();
+
+    assertEquals(Arrays.asList("0\t1\t10", "115200000\t2\t12", "asdf\t1\t22"), getOutputStrings());
+  }
+
+  public void testMixAggregateBy() throws Exception {
+    try {
+      Pipe p = Pump.prime()
+          .groupby("line")
+          .every(new Sum(new Fields("sum"), int.class), "offset")
+          .count("count")
+          .toPipe();
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      // success!
+    }
+  }
 
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
@@ -410,6 +452,26 @@ public class TestPump extends TestCase {
   private static class FailingFilter extends BaseOperation implements Filter {
     @Override public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
       throw new RuntimeException("intentional failure kthxbye");
+    }
+  }
+
+  private static class MaxFunctor implements AggregateBy.Functor {
+    @Override public Fields getDeclaredFields() {
+      return new Fields("max");
+    }
+
+    @Override
+    public Tuple aggregate(FlowProcess flowProcess, TupleEntry args, Tuple context) {
+      if (context == null) {
+        context = args.getTupleCopy();
+      } else {
+        context.set(0, Math.max(context.getDouble(0), args.getDouble(0)));
+      }
+      return context;
+    }
+
+    @Override public Tuple complete(FlowProcess flowProcess, Tuple context) {
+      return context;
     }
   }
 }
