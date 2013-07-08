@@ -73,11 +73,14 @@ public abstract class Pump {
   }
 
   static Fields getArgSelector(String... args) {
-    Fields f = Fields.ALL;
+    return getArgSelector(Fields.ALL, args);
+  }
+
+  static Fields getArgSelector(Fields defaultFields, String... args) {
     if (args.length > 0) {
-      f = new Fields(args);
+      defaultFields = new Fields(args);
     }
-    return f;
+    return defaultFields;
   }
 
   public Pump each(Function function, String... args) {

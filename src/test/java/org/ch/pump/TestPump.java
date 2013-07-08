@@ -339,6 +339,36 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("key1\tvalue2"), outputStrings);
   }
 
+  /**
+   * Test calling Pump#every with no arguments.
+   * (Relies on AggregatorPump correctly setting the default arguments.)
+   */
+  public void testEvery() throws IOException {
+    String inputPath = "/tmp/TestPump/group_by_sec_sort";
+    FileSystem.get(new Configuration()).delete(new Path(inputPath), true);
+
+    Tap inTap = new Hfs(new SequenceFile(new Fields("key1", "key2")), inputPath);
+    TupleEntryCollector collector = inTap.openForWrite(new HadoopFlowProcess());
+    collector.add(new Tuple("key1", "value1"));
+    collector.add(new Tuple("key1", "value2"));
+    collector.close();
+
+    Pump pump = Pump.prime()
+        .retain("key1", "key2")
+        .groupby("key1")
+        .every(new First());
+    Pipe tail = pump.toPipe();
+
+    FlowDef flowDef = new FlowDef()
+        .addSource("input", inTap)
+        .addTail(tail)
+        .addSink(tail, new Hfs(new TextLine(new Fields("key1")), OUTPUT_PATH));
+
+    CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
+    List<String> outputStrings = getOutputStrings();
+    assertEquals(Arrays.asList("key1\tvalue1"), outputStrings);
+  }
+
   public void testUnique() throws Exception {
     CascadingHelper.get().getFlowConnector().connect(getInTap(), getOutTap(), Pump.prime().retain("line").unique("line").toPipe()).complete();
     assertEquals(Arrays.asList("0", "115200000", "asdf"), getOutputStrings());
