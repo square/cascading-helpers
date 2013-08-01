@@ -453,6 +453,18 @@ public class TestPump extends TestCase {
     }
   }
 
+  public void testSortedAggregateBy() throws Exception {
+    try {
+      Pipe p = Pump.prime()
+          .groupby("line").secondarySort("offset")
+          .first("offset")
+          .toPipe();
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      // success!
+    }
+  }
+
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
     List<String> results = new ArrayList<String>();
