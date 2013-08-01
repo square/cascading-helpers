@@ -3,6 +3,7 @@ package org.ch.pump;
 import cascading.operation.Buffer;
 import cascading.pipe.Every;
 import cascading.pipe.Pipe;
+import cascading.tuple.Fields;
 
 public class BufferPump extends EveryPump {
   private final Buffer buffer;
@@ -13,6 +14,6 @@ public class BufferPump extends EveryPump {
   }
 
   @Override public Pipe getPipeInternal() {
-    return new Every(getPrev().toPipe(), getArgSelector(args), buffer);
+    return new Every(getPrev().toPipe(), getArgSelector(Fields.VALUES, args), buffer);
   }
 }
