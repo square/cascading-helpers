@@ -39,6 +39,10 @@ public class GroupByPump extends Pump {
     return getArgSelector(fields);
   }
 
+  public boolean hasSortFields() {
+    return sortFields.length > 0;
+  }
+
   @Override Pump getPrev() {
     return this.prev;
   }

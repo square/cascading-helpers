@@ -28,6 +28,12 @@ public class AggregateByPump extends InternalPump {
         aggregators.add(((AggregateByPump)cur).aggregateBy);
         cur = cur.getPrev();
       } else if (cur instanceof GroupByPump) {
+        GroupByPump groupby = (GroupByPump)cur;
+        if (groupby.hasSortFields()) {
+          throw new IllegalArgumentException(
+              "Partial aggregator does not support custom sort fields. "
+                  + "Argument fields are automatically used for secondary sorting.");
+        }
         return new AggregateBy(cur.getPrev().toPipe(), ((GroupByPump)cur).getFields(),
             aggregators.toArray(new AggregateBy[aggregators.size()]));
       } else {
