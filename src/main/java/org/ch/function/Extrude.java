@@ -1,4 +1,4 @@
-package org.ch.operation;
+package org.ch.function;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;

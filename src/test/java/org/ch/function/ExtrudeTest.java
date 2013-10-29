@@ -1,4 +1,4 @@
-package org.ch.operation;
+package org.ch.function;
 
 import cascading.flow.FlowDef;
 import cascading.flow.hadoop.HadoopFlowProcess;
@@ -19,6 +19,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.ch.CascadingHelper;
+import org.ch.function.Extrude;
 import org.ch.pump.Pump;
 import org.junit.Test;
 
