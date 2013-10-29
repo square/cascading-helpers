@@ -2,10 +2,7 @@ package org.ch.pump;
 
 import cascading.flow.FlowDef;
 import cascading.flow.FlowProcess;
-import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.flow.hadoop.HadoopFlowProcess;
-import cascading.operation.Aggregator;
-import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
@@ -18,6 +15,7 @@ import cascading.operation.aggregator.Count;
 import cascading.operation.aggregator.First;
 import cascading.operation.aggregator.Max;
 import cascading.operation.aggregator.Sum;
+import cascading.operation.filter.FilterNull;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
@@ -36,15 +34,19 @@ import cascading.tuple.TupleEntryIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.ch.CascadingHelper;
+import org.ch.operation.KnowsEmittedClasses;
 
 public class TestPump extends TestCase {
 
@@ -465,6 +467,41 @@ public class TestPump extends TestCase {
     }
   }
 
+  public void testGetSerializedClasses() {
+    Pump pump = Pump.prime()
+        .each(new FunctionThatKnows(Left.class));
+    assertEquals(Collections.singleton(Left.class), pump.getEmittedClasses());
+
+    pump = Pump.prime()
+        .each(new FunctionThatKnows(Left.class))
+        .each(new FilterNull());
+    assertEquals(Collections.singleton(Left.class), pump.getEmittedClasses());
+
+    pump = Pump.cogroup(
+        Pump.prime().each(new FunctionThatKnows(Left.class)),
+        Pump.prime().each(new FunctionThatKnows(Right.class)));
+    assertEquals(new HashSet<Class>(Arrays.asList(Left.class,
+        Right.class)), pump.getEmittedClasses());
+  }
+
+  private static class Left {}
+  private static class Right {}
+
+  private class FunctionThatKnows extends BaseOperation implements KnowsEmittedClasses {
+
+    private final Class klass;
+
+    public FunctionThatKnows(Class klass) {
+      this.klass = klass;
+    }
+
+    @Override public Set<Class> getEmittedClasses() {
+      return Collections.singleton(klass);
+    }
+    @Override public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
+    }
+  }
+
   private List<String> getOutputStrings() throws IOException {
     TupleEntryIterator iter = getOutTap().openForRead(new HadoopFlowProcess(), null);
     List<String> results = new ArrayList<String>();
@@ -473,31 +510,31 @@ public class TestPump extends TestCase {
     }
     return results;
   }
-
   private static class BufferFirst extends BaseOperation implements Buffer {
+
     private BufferFirst() {
       super(new Fields("date2"));
     }
-
     @Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
       Iterator<TupleEntry> argumentsIterator = bufferCall.getArgumentsIterator();
       bufferCall.getOutputCollector().add(argumentsIterator.next().getTuple());
     }
-  }
 
+  }
   private static class FailingFunction extends BaseOperation implements Function {
     @Override public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
       throw new RuntimeException("intentional failure kthxbye");
     }
-  }
 
+  }
   private static class FailingFilter extends BaseOperation implements Filter {
     @Override public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
       throw new RuntimeException("intentional failure kthxbye");
     }
-  }
 
+  }
   private static class MaxFunctor implements AggregateBy.Functor {
+
     @Override public Fields getDeclaredFields() {
       return new Fields("max");
     }
@@ -511,9 +548,9 @@ public class TestPump extends TestCase {
       }
       return context;
     }
-
     @Override public Tuple complete(FlowProcess flowProcess, Tuple context) {
       return context;
     }
+
   }
 }

@@ -20,6 +20,8 @@ import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 import org.ch.function.GetOrElse;
 
@@ -28,6 +30,15 @@ public abstract class Pump {
 
   abstract Pump getPrev();
   abstract Pipe getPipeInternal();
+
+  public Set<Class> getEmittedClasses() {
+    Set<Class> upstreamClasses = Collections.EMPTY_SET;
+    if (getPrev() != null) {
+      upstreamClasses = getPrev().getEmittedClasses();
+    }
+
+    return upstreamClasses;
+  }
 
   public final Pipe toPipe() {
     if (memoizedPipe == null) {
