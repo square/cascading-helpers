@@ -61,6 +61,10 @@ public abstract class Pump {
   }
 
   public static CoGroupPump cogroup(Pump left, Pump right, Joiner joiner, String... cogroupFields) {
+    return cogroup(left,  "__rhs__", right, joiner, cogroupFields);
+  }
+
+  public static CoGroupPump cogroup(Pump left,  String prefix, Pump right, Joiner joiner, String... cogroupFields) {
     String[] modifiedCogroupFields = new String[cogroupFields.length];
     for (int i = 0; i < cogroupFields.length; i++) {
       String cogroupField = cogroupFields[i];
