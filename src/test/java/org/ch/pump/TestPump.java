@@ -49,7 +49,6 @@ import org.ch.CascadingHelper;
 import org.ch.operation.KnowsEmittedClasses;
 
 public class TestPump extends TestCase {
-
   private static final String INPUT_PATH = "/tmp/TestPump/input";
   private static final String INPUT2_PATH = "/tmp/TestPump/input2";
   private static final String OUTPUT_PATH = "/tmp/TestPump/output";
@@ -259,7 +258,7 @@ public class TestPump extends TestCase {
   }
 
   public void testCoGroupEquality() {
-	  Pump left = Pump.prime("left")
+	Pump left = Pump.prime("left")
         .each(new RegexFilter("^[0-9]+$", false), "line")
         .retain("line")
         .coerce("line", int.class)
@@ -488,7 +487,6 @@ public class TestPump extends TestCase {
   private static class Right {}
 
   private class FunctionThatKnows extends BaseOperation implements KnowsEmittedClasses {
-
     private final Class klass;
 
     public FunctionThatKnows(Class klass) {
@@ -510,31 +508,31 @@ public class TestPump extends TestCase {
     }
     return results;
   }
-  private static class BufferFirst extends BaseOperation implements Buffer {
 
+  private static class BufferFirst extends BaseOperation implements Buffer {
     private BufferFirst() {
       super(new Fields("date2"));
     }
+
     @Override public void operate(FlowProcess flowProcess, BufferCall bufferCall) {
       Iterator<TupleEntry> argumentsIterator = bufferCall.getArgumentsIterator();
       bufferCall.getOutputCollector().add(argumentsIterator.next().getTuple());
     }
-
   }
+
   private static class FailingFunction extends BaseOperation implements Function {
     @Override public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
       throw new RuntimeException("intentional failure kthxbye");
     }
-
   }
+
   private static class FailingFilter extends BaseOperation implements Filter {
     @Override public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
       throw new RuntimeException("intentional failure kthxbye");
     }
-
   }
-  private static class MaxFunctor implements AggregateBy.Functor {
 
+  private static class MaxFunctor implements AggregateBy.Functor {
     @Override public Fields getDeclaredFields() {
       return new Fields("max");
     }
@@ -548,9 +546,9 @@ public class TestPump extends TestCase {
       }
       return context;
     }
+
     @Override public Tuple complete(FlowProcess flowProcess, Tuple context) {
       return context;
     }
-
   }
 }
