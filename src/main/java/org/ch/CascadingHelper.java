@@ -3,12 +3,9 @@ package org.ch;
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.tuple.hadoop.TupleSerialization;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.WritableSerialization;
 import org.apache.hadoop.mapred.JobConf;
@@ -102,5 +99,12 @@ public class CascadingHelper {
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties) {
     return new HadoopFlowConnector(mergeProperties(properties));
+  }
+
+  public CascadingHelper withTokensFor(Class... emittedClasses) {
+    for (Class klass : emittedClasses) {
+      CLASSES_TO_BE_SERIALIZED.add(klass);
+    }
+    return THE_HELPER;
   }
 }
