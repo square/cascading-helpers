@@ -107,4 +107,8 @@ public class CascadingHelper {
     }
     return THE_HELPER;
   }
+
+  public CascadingHelper withTokensFor(Set<Class> emittedClasses) {
+    return withTokensFor(emittedClasses.toArray(new Class[emittedClasses.size()]));
+  }
 }
