@@ -2,10 +2,7 @@ package org.ch.pump;
 
 import cascading.flow.FlowDef;
 import cascading.flow.FlowProcess;
-import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.flow.hadoop.HadoopFlowProcess;
-import cascading.operation.Aggregator;
-import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
@@ -18,6 +15,7 @@ import cascading.operation.aggregator.Count;
 import cascading.operation.aggregator.First;
 import cascading.operation.aggregator.Max;
 import cascading.operation.aggregator.Sum;
+import cascading.operation.filter.FilterNull;
 import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
@@ -36,18 +34,21 @@ import cascading.tuple.TupleEntryIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.ch.CascadingHelper;
+import org.ch.operation.KnowsEmittedClasses;
 
 public class TestPump extends TestCase {
-
   private static final String INPUT_PATH = "/tmp/TestPump/input";
   private static final String INPUT2_PATH = "/tmp/TestPump/input2";
   private static final String OUTPUT_PATH = "/tmp/TestPump/output";
@@ -257,7 +258,7 @@ public class TestPump extends TestCase {
   }
 
   public void testCoGroupEquality() {
-	  Pump left = Pump.prime("left")
+	Pump left = Pump.prime("left")
         .each(new RegexFilter("^[0-9]+$", false), "line")
         .retain("line")
         .coerce("line", int.class)
@@ -462,6 +463,40 @@ public class TestPump extends TestCase {
       fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // success!
+    }
+  }
+
+  public void testGetSerializedClasses() {
+    Pump pump = Pump.prime()
+        .each(new FunctionThatKnows(Left.class));
+    assertEquals(Collections.singleton(Left.class), pump.getEmittedClasses());
+
+    pump = Pump.prime()
+        .each(new FunctionThatKnows(Left.class))
+        .each(new FilterNull());
+    assertEquals(Collections.singleton(Left.class), pump.getEmittedClasses());
+
+    pump = Pump.cogroup(
+        Pump.prime().each(new FunctionThatKnows(Left.class)),
+        Pump.prime().each(new FunctionThatKnows(Right.class)));
+    assertEquals(new HashSet<Class>(Arrays.asList(Left.class,
+        Right.class)), pump.getEmittedClasses());
+  }
+
+  private static class Left {}
+  private static class Right {}
+
+  private class FunctionThatKnows extends BaseOperation implements KnowsEmittedClasses {
+    private final Class klass;
+
+    public FunctionThatKnows(Class klass) {
+      this.klass = klass;
+    }
+
+    @Override public Set<Class> getEmittedClasses() {
+      return Collections.singleton(klass);
+    }
+    @Override public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
     }
   }
 
