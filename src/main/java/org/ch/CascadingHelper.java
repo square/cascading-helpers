@@ -3,12 +3,19 @@ package org.ch;
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.tuple.hadoop.TupleSerialization;
-
-import java.util.*;
-
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.WritableSerialization;
 import org.apache.hadoop.mapred.JobConf;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 
 /**
  * CascadingHelper is designed to help you avoid the pain of using a standardized (and
@@ -24,12 +31,12 @@ public class CascadingHelper {
   protected static final Map<Object, Object> DEFAULT_PROPERTIES = new HashMap<Object, Object>();
   protected static final List<Class<? extends Serialization>> SERIALIZATION_IMPLS =
       new ArrayList<Class<? extends Serialization>>(Arrays.asList(
-          WritableSerialization.class,
-          TupleSerialization.class
+              WritableSerialization.class,
+              TupleSerialization.class
       ));
 
   private static final int STARTING_TOKEN = 128;
-  protected static final List<Class> CLASSES_TO_BE_SERIALIZED = new ArrayList<Class>();
+  protected static final Set<Class> CLASSES_TO_BE_SERIALIZED = new HashSet<Class>();
 
   private static final CascadingHelper THE_HELPER = new CascadingHelper();
 
