@@ -88,6 +88,7 @@ public class TestPump extends TestCase {
     fillTap(NULL_TUPLES, getSequenceFileTap(NULL_INPUT_PATH));
   }
 
+  @SuppressWarnings({"unchecked"})
   private void fillTap(List<Tuple> tuples, Tap tap) throws IOException {
     TupleEntryCollector tec = tap.openForWrite(new HadoopFlowProcess());
     for (Tuple t : tuples) {
