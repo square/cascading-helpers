@@ -75,7 +75,6 @@ public class TestPump extends TestCase {
     add(new Tuple(null));
     add(new Tuple("1970-01-03\tfiltered"));
   }};
-  private Tap tap;
 
   public void setUp() throws Exception {
     CascadingHelper.setTestMode();
@@ -198,7 +197,7 @@ public class TestPump extends TestCase {
           .failOnNull("I should fail", "line")
           .toPipe();
 
-      tap = getSequenceFileTap(NULL_INPUT_PATH);
+      Tap tap = getSequenceFileTap(NULL_INPUT_PATH);
       CascadingHelper.get().getFlowConnector().connect(tap, getOutTap(), p).complete();
       fail("Expected an exception, but none was thrown");
     } catch (Exception e) {
