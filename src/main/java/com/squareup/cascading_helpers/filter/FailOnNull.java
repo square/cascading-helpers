@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Fail the job if there are unexpected nulls in the stream
+ * Fail the job if any of the specified fields are null in the stream
  */
 public class FailOnNull extends BaseOperation implements Filter {
   private final String errorText;
