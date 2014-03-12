@@ -20,6 +20,7 @@ import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.squareup.cascading_helpers.filter.FailOnNull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -104,7 +105,7 @@ public abstract class Pump {
   }
 
   public Pump failOnNull(String errorText, String... args) {
-    return new FilterPump(this, new FailOnNull(errorText), args);
+    return new FilterPump(this, new FailOnNull(errorText, args), args);
   }
 
   public Pump unique(String... uniqueFields) {
