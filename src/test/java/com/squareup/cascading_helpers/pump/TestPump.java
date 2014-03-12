@@ -1,8 +1,6 @@
 package com.squareup.cascading_helpers.pump;
 
-import cascading.CascadingException;
 import cascading.flow.FlowDef;
-import cascading.flow.FlowException;
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
@@ -23,7 +21,6 @@ import cascading.operation.regex.RegexFilter;
 import cascading.operation.regex.RegexSplitter;
 import cascading.operation.text.DateFormatter;
 import cascading.pipe.CoGroup;
-import cascading.pipe.OperatorException;
 import cascading.pipe.Pipe;
 import cascading.pipe.assembly.AggregateBy;
 import cascading.scheme.hadoop.SequenceFile;
@@ -35,6 +32,8 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
+import com.squareup.cascading_helpers.CascadingHelper;
+import com.squareup.cascading_helpers.operation.KnowsEmittedClasses;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,11 +48,7 @@ import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import com.squareup.cascading_helpers.CascadingHelper;
-import com.squareup.cascading_helpers.operation.KnowsEmittedClasses;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class TestPump extends TestCase {
   private static final String INPUT_PATH = "/tmp/TestPump/input";
@@ -205,7 +200,7 @@ public class TestPump extends TestCase {
 
       tap = getSequenceFileTap(NULL_INPUT_PATH);
       CascadingHelper.get().getFlowConnector().connect(tap, getOutTap(), p).complete();
-      fail();
+      fail("Expected an exception, but none was thrown");
     } catch (Exception e) {
       assertNotNull(e);
     }
