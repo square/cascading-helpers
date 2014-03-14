@@ -6,6 +6,7 @@ import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
+import cascading.operation.Debug;
 import cascading.operation.Filter;
 import cascading.operation.FilterCall;
 import cascading.operation.Function;
@@ -31,6 +32,8 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
+import com.squareup.cascading_helpers.CascadingHelper;
+import com.squareup.cascading_helpers.operation.KnowsEmittedClasses;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,12 +48,12 @@ import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import com.squareup.cascading_helpers.CascadingHelper;
-import com.squareup.cascading_helpers.operation.KnowsEmittedClasses;
+import org.junit.Test;
 
 public class TestPump extends TestCase {
   private static final String INPUT_PATH = "/tmp/TestPump/input";
   private static final String INPUT2_PATH = "/tmp/TestPump/input2";
+  private static final String NULL_INPUT_PATH = "/tmp/TestPump/nulls";
   private static final String OUTPUT_PATH = "/tmp/TestPump/output";
   private static final String OUTPUT_PATH2 = "/tmp/TestPump/output2";
 
@@ -67,6 +70,12 @@ public class TestPump extends TestCase {
     add(new Tuple("1970-01-03\tfiltered"));
   }};
 
+  private static final List<Tuple> NULL_TUPLES = new ArrayList<Tuple>(){{
+    add(new Tuple("1970-01-01\tfirst"));
+    add(new Tuple(null));
+    add(new Tuple("1970-01-03\tfiltered"));
+  }};
+
   public void setUp() throws Exception {
     CascadingHelper.setTestMode();
     FileSystem.get(new Configuration()).delete(new Path(INPUT_PATH), true);
@@ -74,35 +83,34 @@ public class TestPump extends TestCase {
     FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH), true);
     FileSystem.get(new Configuration()).delete(new Path(OUTPUT_PATH2), true);
 
-    Tap inTap = getInTap();
-    TupleEntryCollector tec = inTap.openForWrite(new HadoopFlowProcess());
-    for (Tuple t : INPUT_TUPLES) {
-      tec.add(new TupleEntry(t));
-    }
-    tec.close();
+    fillTap(INPUT_TUPLES, getTap(INPUT_PATH));
+    fillTap(INPUT2_TUPLES, getTap(INPUT2_PATH));
+    fillTap(NULL_TUPLES, getSequenceFileTap(NULL_INPUT_PATH));
+  }
 
-    inTap = getIn2Tap();
-    tec = inTap.openForWrite(new HadoopFlowProcess());
-    for (Tuple t : INPUT2_TUPLES) {
-      tec.add(new TupleEntry(t));
+  @SuppressWarnings({"unchecked"})
+  private void fillTap(List<Tuple> tuples, Tap tap) throws IOException {
+    TupleEntryCollector tec = tap.openForWrite(new HadoopFlowProcess());
+    for (Tuple t : tuples) {
+      tec.add(new TupleEntry(new Fields("line"), t));
     }
     tec.close();
   }
 
   public Tap getInTap() {
-    return new Hfs(new TextLine(), INPUT_PATH);
-  }
-
-  public Tap getIn2Tap() {
-    return new Hfs(new TextLine(), INPUT2_PATH);
+    return getTap(INPUT_PATH);
   }
 
   public Tap getOutTap() {
-    return new Hfs(new TextLine(), OUTPUT_PATH);
+    return getTap(OUTPUT_PATH);
   }
 
-  public Tap getOutTap2() {
-    return new Hfs(new TextLine(), OUTPUT_PATH2);
+  public Tap getTap(String path) {
+    return new Hfs(new TextLine(), path);
+  }
+
+  public Tap getSequenceFileTap(String path) {
+    return new Hfs(new SequenceFile(new Fields("line")), path);
   }
 
   public void testRetain() throws IOException {
@@ -181,6 +189,23 @@ public class TestPump extends TestCase {
     assertEquals(Arrays.asList("1970-01-02", "1970-01-01", "1970-01-02"), getOutputStrings());
   }
 
+  @Test
+  public void testFailOnNull() throws IOException {
+    try {
+      Pipe p = Pump.prime()
+          .retain("line")
+          .each(new Debug(true))
+          .failOnNull("I should fail", "line")
+          .toPipe();
+
+      Tap tap = getSequenceFileTap(NULL_INPUT_PATH);
+      CascadingHelper.get().getFlowConnector().connect(tap, getOutTap(), p).complete();
+      fail("Expected an exception, but none was thrown");
+    } catch (Exception e) {
+      assertNotNull(e);
+    }
+  }
+
   public void testGroupBy() throws Exception {
     Pipe p = Pump.prime()
         .each(new RegexFilter("^[0-9]+$", false), "line")
@@ -249,7 +274,7 @@ public class TestPump extends TestCase {
 
     Map<String, Tap> inputTaps = new HashMap<String, Tap>() {{
       put("left", getInTap());
-      put("right", getIn2Tap());
+      put("right", getTap(INPUT2_PATH));
     }};
 
     CascadingHelper.get().getFlowConnector().connect(inputTaps, getOutTap(), pipe).complete();
@@ -408,7 +433,7 @@ public class TestPump extends TestCase {
     FlowDef flowDef = new FlowDef()
         .addSource("input", getInTap())
         .addTailSink(branch1.toPipe(), getOutTap())
-        .addTailSink(branch2.toPipe(), getOutTap2());
+        .addTailSink(branch2.toPipe(), getTap(OUTPUT_PATH2));
 
     // really just looking to see if this will plan and execute at all; results are meaningless
     CascadingHelper.get().getFlowConnector().connect(flowDef).complete();
