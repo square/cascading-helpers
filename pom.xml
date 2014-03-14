@@ -24,7 +24,7 @@
     </parent>
     <groupId>com.squareup</groupId>
     <artifactId>cascading-helpers</artifactId>
-    <version>0.14</version>
+    <version>0.15</version>
     <packaging>jar</packaging>
 
     <name>cascading-helpers</name>
