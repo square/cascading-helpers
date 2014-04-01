@@ -29,6 +29,7 @@ public class CascadingHelper {
   private static boolean testMode = false;
 
   protected static final Map<Object, Object> DEFAULT_PROPERTIES = new HashMap<Object, Object>();
+  @SuppressWarnings({"unchecked"})
   protected static final List<Class<? extends Serialization>> SERIALIZATION_IMPLS =
       new ArrayList<Class<? extends Serialization>>(Arrays.asList(
               WritableSerialization.class,
@@ -42,6 +43,10 @@ public class CascadingHelper {
 
   public static CascadingHelper get() {
     return THE_HELPER;
+  }
+
+  public static FlowBuilder newBuilder() {
+    return new FlowBuilder();
   }
 
   /**
@@ -80,8 +85,8 @@ public class CascadingHelper {
   private static void addSerializations(Map<Object, Object> props) {
     JobConf jobConf = new JobConf();
     String existingSerializations = jobConf.get(IO_SERIALIZATIONS);
-    ArrayList<String> serializations =
-        new ArrayList(Arrays.asList(existingSerializations.split(",")));
+    List<String> serializations =
+        new ArrayList<String>(Arrays.asList(existingSerializations.split(",")));
     for (Class<? extends Serialization> serClass : SERIALIZATION_IMPLS) {
       serializations.add(serClass.getName());
     }
@@ -109,9 +114,7 @@ public class CascadingHelper {
   }
 
   public CascadingHelper withTokensFor(Class... emittedClasses) {
-    for (Class klass : emittedClasses) {
-      CLASSES_TO_BE_SERIALIZED.add(klass);
-    }
+    Collections.addAll(CLASSES_TO_BE_SERIALIZED, emittedClasses);
     return THE_HELPER;
   }
 
