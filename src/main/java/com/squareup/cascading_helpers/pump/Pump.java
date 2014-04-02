@@ -34,7 +34,7 @@ public abstract class Pump {
   abstract Pipe getPipeInternal();
 
   public Set<Class> getEmittedClasses() {
-    Set<Class> upstreamClasses = Collections.EMPTY_SET;
+    Set<Class> upstreamClasses = Collections.emptySet();
     if (getPrev() != null) {
       upstreamClasses = getPrev().getEmittedClasses();
     }
@@ -109,7 +109,7 @@ public abstract class Pump {
   }
 
   public Pump unique(String... uniqueFields) {
-    return new PipeAdapterPump(new Unique(toPipe(), getArgSelector(uniqueFields)));
+    return new PipeAdapterPump(this, new Unique(toPipe(), getArgSelector(uniqueFields)));
   }
 
   public GroupByPump groupby(String... fields) {
@@ -147,11 +147,11 @@ public abstract class Pump {
   }
 
   public Pump retain(String ... fieldsToKeep) {
-    return new PipeAdapterPump(new Retain(toPipe(), getArgSelector(fieldsToKeep)));
+    return new PipeAdapterPump(this, new Retain(toPipe(), getArgSelector(fieldsToKeep)));
   }
 
   public Pump discard(String ... fieldsToDiscard) {
-    return new PipeAdapterPump(new Discard(toPipe(), getArgSelector(fieldsToDiscard)));
+    return new PipeAdapterPump(this, new Discard(toPipe(), getArgSelector(fieldsToDiscard)));
   }
 
   public Pump coerce(String field, Class toClass) {
@@ -165,11 +165,11 @@ public abstract class Pump {
   }
 
   public Pump coerce(String[] fields, Class<?>[] classes) {
-    return new PipeAdapterPump(new Coerce(toPipe(), new Fields(fields), classes));
+    return new PipeAdapterPump(this, new Coerce(toPipe(), new Fields(fields), classes));
   }
 
   public Pump rename(String field, String toName) {
-    return new PipeAdapterPump(new Rename(toPipe(), new Fields(field), new Fields(toName)));
+    return new PipeAdapterPump(this, new Rename(toPipe(), new Fields(field), new Fields(toName)));
   }
 
   public Pump replace(String field, String toName) {
