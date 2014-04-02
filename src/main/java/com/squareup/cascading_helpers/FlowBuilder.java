@@ -18,6 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * FlowBuilder is a fluent interface extending FlowDef to better integrate with
+ * the {@link com.squareup.cascading_helpers.operation.KnowsEmittedClasses} interface. It is meant
+ * to assist in declaratively building a FlowDef, and returns the {@link cascading.flow.Flow} upon
+ * calling the {@link #build()} method.
+ */
 public class FlowBuilder {
   private final FlowDef flowDef;
   private final Set<Class> emittedClasses;
@@ -76,16 +82,34 @@ public class FlowBuilder {
     return this;
   }
 
+  /**
+   * List of {@link cascading.flow.FlowListener} to be attached to the {@link cascading.flow.Flow}.
+   * @param listeners - {@link java.util.List} of {@link cascading.flow.FlowListener}s.
+   * @return {@link com.squareup.cascading_helpers.FlowBuilder}.
+   */
   public FlowBuilder listeners(List<FlowListener> listeners) {
     this.listeners.addAll(listeners);
     return this;
   }
 
+  /**
+   * Map of underlying properties applied to the {@link cascading.flow.FlowConnector} for the
+   * cascading job being build.
+   * @param properties - {@link java.util.Map} of properties for the underlying
+   * {@link cascading.flow.hadoop.HadoopFlowConnector}
+   * @return {@link com.squareup.cascading_helpers.FlowBuilder}.
+   */
   public FlowBuilder properties(Map<Object, Object> properties) {
     this.properties.putAll(properties);
     return this;
   }
 
+  /**
+   * Builds the underlying {@link cascading.flow.FlowDef} by populating the emittedClasses that
+   * each tail sink knows of, attaching any provided {@link #properties(java.util.Map)} and
+   * {@link #listeners(java.util.List)}, and returning the {@link cascading.flow.Flow}.
+   * @return {@link cascading.flow.Flow}.
+   */
   public Flow build() {
     CascadingHelper helper = CascadingHelper.get().withTokensFor(emittedClasses);
     FlowConnector connector;
@@ -102,5 +126,17 @@ public class FlowBuilder {
       }
     }
     return flow;
+  }
+
+  /**
+   * Get a handle to the current {@link #flowDef}. Use discouraged.
+   * @return
+   */
+  public FlowDef getFlowDef() {
+    return this.flowDef;
+  }
+
+  public Set<Class> getEmittedClasses() {
+    return emittedClasses;
   }
 }

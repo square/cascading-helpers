@@ -41,10 +41,19 @@ public class CascadingHelper {
 
   private static final CascadingHelper THE_HELPER = new CascadingHelper();
 
+  /**
+   * @deprecated use {@link #newBuilder()} instead.
+   * @return the singleton instance of the helper.
+   */
+  @Deprecated
   public static CascadingHelper get() {
     return THE_HELPER;
   }
 
+  /**
+   * See {@link com.squareup.cascading_helpers.FlowBuilder}.
+   * @return {@link com.squareup.cascading_helpers.FlowBuilder}
+   */
   public static FlowBuilder newBuilder() {
     return new FlowBuilder();
   }
