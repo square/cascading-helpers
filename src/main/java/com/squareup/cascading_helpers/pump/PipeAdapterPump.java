@@ -4,6 +4,7 @@ import cascading.pipe.Pipe;
 
 public class PipeAdapterPump extends Pump {
   private Pipe pipe;
+  private Pump prev;
 
   public PipeAdapterPump(String name) {
     this(new Pipe(name));
@@ -13,8 +14,13 @@ public class PipeAdapterPump extends Pump {
     this.pipe = pipe;
   }
 
+  public PipeAdapterPump(Pump prev, Pipe pipe) {
+    this.prev = prev;
+    this.pipe = pipe;
+  }
+
   @Override Pump getPrev() {
-    return null;
+    return prev;
   }
 
   @Override public Pipe getPipeInternal() {
