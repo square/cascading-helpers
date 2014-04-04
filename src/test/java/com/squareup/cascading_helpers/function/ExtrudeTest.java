@@ -2,7 +2,6 @@ package com.squareup.cascading_helpers.function;
 
 import cascading.flow.FlowDef;
 import cascading.flow.hadoop.HadoopFlowProcess;
-import cascading.operation.FunctionCall;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.hadoop.Hfs;
@@ -11,15 +10,15 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-import java.io.IOException;
+import com.squareup.cascading_helpers.CascadingHelper;
+import com.squareup.cascading_helpers.pump.Pump;
+import com.squareup.cascading_helpers.util.TestHelpers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import com.squareup.cascading_helpers.CascadingHelper;
-import com.squareup.cascading_helpers.pump.Pump;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -29,43 +28,13 @@ public class ExtrudeTest {
 
   @Test
   public void testExtrude() {
-    Extrude ex = new Extrude("output");
+    List<Tuple> results = TestHelpers.exec(
+        new Extrude("output"),
+        new Fields("first", "second"),
+        new Tuple("first", "second"));
 
-    final List<TupleEntry> outputs = new ArrayList<TupleEntry>();
-
-    ex.operate(null, new FunctionCall() {
-      @Override public TupleEntry getArguments() {
-        return new TupleEntry(new Fields("first", "second"), new Tuple("first", "second"));
-      }
-
-      @Override public Fields getDeclaredFields() {
-        return null;
-      }
-
-      @Override public TupleEntryCollector getOutputCollector() {
-        return new TupleEntryCollector() {
-          @Override protected void collect(TupleEntry tupleEntry) throws IOException {
-            // note: important to do the copy of the TupleEntry, because it gets reused!
-            outputs.add(new TupleEntry(tupleEntry));
-          }
-        };
-      }
-
-      @Override public Object getContext() {
-        return null;
-      }
-
-      @Override public void setContext(Object o) {
-      }
-
-      @Override public Fields getArgumentFields() {
-        return null;
-      }
-    });
-
-    assertEquals(2, outputs.size());
-    assertEquals("first", outputs.get(0).getString(0));
-    assertEquals("second", outputs.get(1).getString(0));
+    assertEquals(2, results.size());
+    assertEquals(Arrays.asList(new Tuple("first"), new Tuple("second")), results);
   }
 
   @Test
