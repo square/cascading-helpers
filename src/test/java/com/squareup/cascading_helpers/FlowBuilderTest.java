@@ -3,19 +3,18 @@ package com.squareup.cascading_helpers;
 import cascading.flow.Flow;
 import cascading.flow.FlowListener;
 import com.squareup.cascading_helpers.pump.Pump;
-import java.util.Arrays;
-import java.util.HashMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import java.util.Arrays;
+import java.util.HashMap;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.junit.Assert.*;
 
 public class FlowBuilderTest {
   @Before
@@ -45,7 +44,7 @@ public class FlowBuilderTest {
         .listeners(Arrays.<FlowListener>asList(listener))
         .properties(properties);
 
-    assertThat(builder.getEmittedClasses(), hasItem(Tests.Left.class));
+    assertThat(builder.getEmittedClasses(), hasItems((Class)Tests.Left.class));
 
     Flow flow = builder.build();
     flow.complete();
