@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mvn verify
+scp pom.xml `find target -name "*.jar"` repo@conjars.org:
