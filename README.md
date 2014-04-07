@@ -26,3 +26,8 @@ If you'd like to make it easier to write your Flows and make them more readable,
       .every(new Count(new Fields("count")));
 
 More to come!
+
+Publishing the artifact to conjars.org
+==========================
+
+Just run the publish-to-conjars script.
