@@ -1,4 +1,4 @@
-package com.squareup.cascading_helpers.util;
+package com.squareup.cascading_helpers;
 
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Filter;

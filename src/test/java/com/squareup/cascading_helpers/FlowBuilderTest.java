@@ -8,7 +8,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -44,7 +43,7 @@ public class FlowBuilderTest {
         .listeners(Arrays.<FlowListener>asList(listener))
         .properties(properties);
 
-    assertThat(builder.getEmittedClasses(), hasItems((Class)Tests.Left.class));
+    assertThat(builder.getEmittedClasses(), hasItems((Class) Tests.Left.class));
 
     Flow flow = builder.build();
     flow.complete();
