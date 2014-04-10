@@ -16,23 +16,26 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <modules>
-    <module>cascading-tests</module>
-  </modules>
 
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
   </parent>
-  <groupId>com.squareup</groupId>
-  <artifactId>cascading-helpers</artifactId>
-  <version>0.19</version>
+
+  <groupId>com.squareup.cascading-helpers</groupId>
+  <artifactId>cascading-helpers-parent</artifactId>
+  <version>0.19-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>cascading-helpers</name>
+  <name>Cascading Helpers (Parent)</name>
   <description>A set of tools for working with Cascading Flows</description>
   <url>https://github.com/square/cascading-helpers</url>
+
+  <modules>
+    <module>cascading-helpers</module>
+    <module>cascading-helpers-tests</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -62,44 +65,40 @@
     </repository>
   </repositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>cascading</groupId>
-      <artifactId>cascading-core</artifactId>
-      <version>2.2.0-wip-19</version>
-    </dependency>
-    <dependency>
-      <groupId>cascading</groupId>
-      <artifactId>cascading-hadoop</artifactId>
-      <version>2.2.0-wip-19</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.20.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.9.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <version>1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>cascading</groupId>
+        <artifactId>cascading-core</artifactId>
+        <version>2.2.0-wip-19</version>
+      </dependency>
+      <dependency>
+        <groupId>cascading</groupId>
+        <artifactId>cascading-hadoop</artifactId>
+        <version>2.2.0-wip-19</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-core</artifactId>
+        <version>0.20.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>1.9.5</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>
