@@ -12,7 +12,7 @@ import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
 import com.squareup.cascading_helpers.CascadingHelper;
 import com.squareup.cascading_helpers.pump.Pump;
-import com.squareup.cascading_helpers.util.TestHelpers;
+import com.squareup.cascading_helpers.TestHelpers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

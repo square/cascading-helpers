@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+      <groupId>com.squareup.cascading-helpers</groupId>
+      <artifactId>cascading-helpers-parent</artifactId>
+      <version>0.19-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>cascading-helpers-tests</artifactId>
+    <name>Cascading Helpers Tests</name>
+
+    <dependencies>
+      <dependency>
+        <groupId>cascading</groupId>
+        <artifactId>cascading-core</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>cascading</groupId>
+        <artifactId>cascading-hadoop</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+      </dependency>
+    </dependencies>
+</project>

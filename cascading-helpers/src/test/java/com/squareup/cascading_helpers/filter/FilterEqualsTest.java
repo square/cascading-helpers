@@ -2,7 +2,7 @@ package com.squareup.cascading_helpers.filter;
 
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
-import com.squareup.cascading_helpers.util.TestHelpers;
+import com.squareup.cascading_helpers.TestHelpers;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
